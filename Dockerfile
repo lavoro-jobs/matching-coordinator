@@ -11,7 +11,6 @@ RUN apk add bash
 RUN curl -sS https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -o /wait-for-it.sh \
     && chmod +x /wait-for-it.sh
 
-# Library
 COPY ./lavoro-library/pre_install.sh /devel/pre_install.sh
 RUN chmod +x /devel/pre_install.sh
 RUN /devel/pre_install.sh
