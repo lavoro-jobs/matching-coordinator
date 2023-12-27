@@ -41,3 +41,16 @@ def get_items_to_match(item_type: str):
                 yield JobPostToMatch(**decoded_data)
     else:
         return []
+
+
+def delete_item_to_match(item_type: str, item_id: str):
+    query_tuple = (
+        """
+        DELETE FROM items_to_match
+        WHERE item_type = %s AND id = %s
+    """,
+        (item_type, item_id),
+    )
+
+    result = db.execute_one(query_tuple)
+    return result["affected_rows"] == 1
