@@ -3,7 +3,13 @@ import os
 import jsonpickle
 
 from lavoro_library.amqp import RabbitMQConsumer, RabbitMQProducer
-from lavoro_library.model.message_schemas import ApplicantProfileToMatch, ItemToMatch, JobPostToMatch, MatchToCalculate
+from lavoro_library.model.message_schemas import (
+    ApplicantProfileToMatch,
+    DeleteJobPost,
+    ItemToMatch,
+    JobPostToMatch,
+    MatchToCalculate,
+)
 from lavoro_matching_coordinator.database import queries
 
 
@@ -21,10 +27,13 @@ class MatchingCoordinatorService:
         channel.basic_ack(delivery_tag=method.delivery_tag)
 
     def _process_item_to_match(self, item_to_match: ItemToMatch):
-        matches_to_calculate = self._create_matches_to_calculate(item_to_match)
-        for match_to_calculate in matches_to_calculate:
-            self.match_to_calculate_producer.publish(match_to_calculate)
-        self._save_item_to_match(item_to_match)
+        if isinstance(item_to_match.data, DeleteJobPost):
+            queries.delete_item_to_match("job_post", item_to_match.data.job_post_id)
+        else:
+            matches_to_calculate = self._create_matches_to_calculate(item_to_match)
+            for match_to_calculate in matches_to_calculate:
+                self.match_to_calculate_producer.publish(match_to_calculate)
+            self._save_item_to_match(item_to_match)
 
     def _create_matches_to_calculate(self, item_to_match: ItemToMatch):
         if isinstance(item_to_match.data, JobPostToMatch):
