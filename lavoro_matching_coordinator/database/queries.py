@@ -1,3 +1,4 @@
+from datetime import datetime
 import jsonpickle
 from lavoro_library.model.message_schemas import ApplicantProfileToMatch, ItemToMatch, JobPostToMatch
 from lavoro_matching_coordinator.database import db
@@ -38,7 +39,9 @@ def get_items_to_match(item_type: str):
             if item_type == "applicant_profile":
                 yield ApplicantProfileToMatch(**decoded_data)
             else:
-                yield JobPostToMatch(**decoded_data)
+                job_post_to_match = JobPostToMatch(**decoded_data)
+                if job_post_to_match.end_date > datetime.now():
+                    yield JobPostToMatch(**decoded_data)
     else:
         return []
 
