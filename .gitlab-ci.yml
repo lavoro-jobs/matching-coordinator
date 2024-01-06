@@ -1,0 +1,38 @@
+stages:
+    - build
+    - deploy
+
+variables:
+    ACR_SERVER: "lavorocontainers.azurecr.io"
+    IMAGE_NAME: "$ACR_SERVER/matching-coordinator"
+    AKS_RESOURCE_GROUP: "lavoro"
+    AKS_CLUSTER_NAME: "lavoro-k8s"
+
+build_matching_coordinator:
+    stage: build
+    image: docker:24.0.7
+    services:
+        - docker:24.0.7-dind
+    script:
+        - echo "Building Docker image..."
+        - docker login $ACR_SERVER -u $APP_ID -p $SP_PASSWORD
+        - docker build -t $IMAGE_NAME:$CI_COMMIT_SHORT_SHA --target production --build-arg GITLAB_ACCESS_TOKEN=$GITLAB_ACCESS_TOKEN .
+        - docker push $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+    only:
+        - master
+
+deploy_to_aks:
+    stage: deploy
+    image: mcr.microsoft.com/azure-cli
+    script:
+        - echo "Deploying to AKS..."
+        - az login --service-principal -u $APP_ID -p $SP_PASSWORD --tenant $TENANT_ID
+        - az aks get-credentials --resource-group $AKS_RESOURCE_GROUP --name $AKS_CLUSTER_NAME --overwrite-existing
+        - az aks install-cli
+        - 'sed -i "s|image: .*|image: $IMAGE_NAME:$CI_COMMIT_SHORT_SHA|" deployment/deployment.yaml'
+        - kubectl create secret generic db-connection-string --from-literal=DB_CONNECTION_STRING="$DB_CONNECTION_STRING" --dry-run=client -o yaml | kubectl apply -f -
+        - kubectl create secret generic rabbitmq-url --from-literal=AMQP_URL=$AMQP_URL --dry-run=client -o yaml | kubectl apply -f -
+        - kubectl apply -f deployment/deployment.yaml
+        - kubectl apply -f deployment/service.yaml
+    only:
+        - master
