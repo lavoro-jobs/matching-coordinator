@@ -20,11 +20,11 @@ spec:
                   ports:
                       - containerPort: 80
                   env:
-                      - name: RABBITMQ_URL
+                      - name: AMQP_URL
                         valueFrom:
                             secretKeyRef:
                                 name: rabbitmq-url
-                                key: RABBITMQ_URL
+                                key: AMQP_URL
                       - name: DB_CONNECTION_STRING
                         valueFrom:
                             secretKeyRef:
