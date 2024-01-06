@@ -35,7 +35,7 @@ RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
 
 ARG GITLAB_ACCESS_TOKEN
 ENV GITLAB_ACCESS_TOKEN=${GITLAB_ACCESS_TOKEN}
-RUN pip install --no-cache-dir lavoro-library --index-url https://__read__:${GITLAB_ACCESS_TOKEN}@${GITLAB_URL}/api/v4/projects/51671363/packages/pypi/simple
+RUN pip install --no-cache-dir lavoro-library --index-url https://__read__:${GITLAB_ACCESS_TOKEN}@gitlab.com/api/v4/projects/51671363/packages/pypi/simple
 
 COPY ./lavoro_matching_coordinator /app/lavoro_matching_coordinator
 
