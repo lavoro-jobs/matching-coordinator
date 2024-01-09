@@ -4,8 +4,8 @@ WORKDIR /app
 
 FROM base AS development
 
-COPY ./lavoro-matching-coordinator/requirements.txt /devel/requirements.txt
-RUN pip install --no-cache-dir --upgrade -r /devel/requirements.txt
+COPY ./lavoro-matching-coordinator/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
 
 RUN apk add curl
 RUN apk add bash
@@ -13,15 +13,15 @@ RUN apk add bash
 RUN curl -sS https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -o /wait-for-it.sh \
     && chmod +x /wait-for-it.sh
 
-COPY ./lavoro-library/pre_install.sh /devel/pre_install.sh
-RUN chmod +x /devel/pre_install.sh
-RUN /devel/pre_install.sh
+COPY ./lavoro-library/pre_install.sh /app/pre_install.sh
+RUN chmod +x /app/pre_install.sh
+RUN /app/pre_install.sh
 
-COPY ./lavoro-library/lavoro_library /devel/lavoro_library
+COPY ./lavoro-library/lavoro_library /app/lavoro_library
 
-COPY ./lavoro-matching-coordinator/lavoro_matching_coordinator /devel/lavoro_matching_coordinator
+COPY ./lavoro-matching-coordinator/lavoro_matching_coordinator /app/lavoro_matching_coordinator
 
-ENV PYTHONPATH "${PYTHONPATH}:/devel"
+ENV PYTHONPATH "${PYTHONPATH}:/app"
 
 ENTRYPOINT ["/wait-for-it.sh", "pgsql:5432", "--timeout=150", "--"]
 
